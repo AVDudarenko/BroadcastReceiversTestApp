@@ -9,12 +9,17 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 class MainActivity : AppCompatActivity() {
 
 	private val receiver = MyReceiver()
 	private var count = 0
 	private lateinit var progressBar: ProgressBar
+
+	private val localBroadcastManager by lazy {
+		LocalBroadcastManager.getInstance(this)
+	}
 
 	private val receiverMain = object : BroadcastReceiver() {
 		override fun onReceive(context: Context?, intent: Intent?) {
@@ -23,7 +28,6 @@ class MainActivity : AppCompatActivity() {
 				progressBar.progress = percent
 			}
 		}
-
 	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,10 +51,10 @@ class MainActivity : AppCompatActivity() {
 		}
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 			registerReceiver(receiver, intentFilter, RECEIVER_EXPORTED)
-			registerReceiver(receiverMain, intentFilter, RECEIVER_EXPORTED)
+			localBroadcastManager.registerReceiver(receiverMain, intentFilter)
 		} else {
 			registerReceiver(receiver, intentFilter)
-			registerReceiver(receiverMain, intentFilter)
+			localBroadcastManager.registerReceiver(receiverMain, intentFilter)
 		}
 		Intent(this, MyService::class.java).apply {
 			startService(this)
@@ -60,6 +64,6 @@ class MainActivity : AppCompatActivity() {
 	override fun onDestroy() {
 		super.onDestroy()
 		unregisterReceiver(receiver)
-		unregisterReceiver(receiverMain)
+		localBroadcastManager.unregisterReceiver(receiverMain)
 	}
 }
